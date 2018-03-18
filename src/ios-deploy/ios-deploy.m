@@ -1241,8 +1241,32 @@ void list_bundle_id(AMDeviceRef device)
     assert(AMDeviceIsPaired(device));
     check_error(AMDeviceValidatePairing(device));
     check_error(AMDeviceStartSession(device));
+    NSArray *a = [NSArray arrayWithObjects:
+                  @"CFBundleIdentifier",            // absolute must
+                  @"ApplicationDSID",
+                  @"ApplicationType",
+                  @"CFBundleExecutable",
+                  @"CFBundleDisplayName",
+                  @"CFBundleIconFile",
+                  @"CFBundleName",
+                  @"CFBundleShortVersionString",
+                  @"CFBundleSupportedPlatforms",
+                  @"CFBundleURLTypes",
+                  @"CodeInfoIdentifier",
+                  @"Container",
+                  @"Entitlements",
+                  @"HasSettingsBundle",
+                  @"IsUpgradeable",
+                  @"MinimumOSVersion",
+                  @"Path",
+                  @"SignerIdentity",
+                  @"UIDeviceFamily",
+                  @"UIFileSharingEnabled",
+                  @"UIStatusBarHidden",
+                  @"UISupportedInterfaceOrientations",
+                  nil];
 
-    NSArray *a = [NSArray arrayWithObjects:@"CFBundleIdentifier", nil];
+    // NSArray *a = [NSArray arrayWithObjects:@"CFBundleIdentifier", nil];
     NSDictionary *optionsDict = [NSDictionary dictionaryWithObject:a forKey:@"ReturnAttributes"];
     CFDictionaryRef options = (CFDictionaryRef)optionsDict;
     CFDictionaryRef result = nil;
@@ -1251,9 +1275,10 @@ void list_bundle_id(AMDeviceRef device)
     CFIndex count;
     count = CFDictionaryGetCount(result);
     const void *keys[count];
-    CFDictionaryGetKeysAndValues(result, keys, NULL);
+    const void *values[count];
+    CFDictionaryGetKeysAndValues(result, keys, values);
     for(int i = 0; i < count; ++i) {
-        NSLogOut(@"%@", (CFStringRef)keys[i]);
+        NSLogOut(@"%@ => %@", (CFStringRef)keys[i], (CFDictionaryRef)(values[i]));
     }
 
     check_error(AMDeviceStopSession(device));
