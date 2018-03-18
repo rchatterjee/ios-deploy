@@ -90,7 +90,8 @@ If you are *not* using a node version manager like [nvm](https://github.com/crea
         -R, --rm <path>              remove file or directory on device (directories must be empty)
         -V, --version                print the executable version 
         -e, --exists                 check if the app with given bundle_id is installed or not 
-        -B, --list_bundle_id         list bundle_id 
+        -s, --list_bundle_id         list bundle_id 
+        -B, --browse_bundle_id       browse bundle_ids, print some extra informations, e.g., display name, etc. 
         -W, --no-wifi                ignore wifi devices
         --detect_deadlocks <sec>     start printing backtraces for all threads periodically after specific amount of seconds
 

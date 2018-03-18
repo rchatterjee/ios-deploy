@@ -1235,7 +1235,7 @@ int app_exists(AMDeviceRef device)
     return -1;
 }
 
-void list_bundle_id(AMDeviceRef device)
+void list_bundle_id(AMDeviceRef device, boolean_t browse)
 {
     AMDeviceConnect(device);
     assert(AMDeviceIsPaired(device));
@@ -1265,8 +1265,8 @@ void list_bundle_id(AMDeviceRef device)
                   @"UIStatusBarHidden",
                   @"UISupportedInterfaceOrientations",
                   nil];
-
-    // NSArray *a = [NSArray arrayWithObjects:@"CFBundleIdentifier", nil];
+    if(!browse)
+        a = [NSArray arrayWithObjects:@"CFBundleIdentifier", nil];
     NSDictionary *optionsDict = [NSDictionary dictionaryWithObject:a forKey:@"ReturnAttributes"];
     CFDictionaryRef options = (CFDictionaryRef)optionsDict;
     CFDictionaryRef result = nil;
@@ -1278,7 +1278,8 @@ void list_bundle_id(AMDeviceRef device)
     const void *values[count];
     CFDictionaryGetKeysAndValues(result, keys, values);
     for(int i = 0; i < count; ++i) {
-        NSLogOut(@"%@ => %@", (CFStringRef)keys[i], (CFDictionaryRef)(values[i]));
+        // NSLogOut(@"%@ => %@", (CFStringRef)keys[i], (CFDictionaryRef)(values[i]));
+        NSLogOut(@"%@", (CFDictionaryRef)(values[i]));
     }
 
     check_error(AMDeviceStopSession(device));
@@ -1520,6 +1521,7 @@ void handle_device(AMDeviceRef device) {
 
     if (detect_only) {
         NSLogOut(@"[....] Found %@ connected through %@.", device_full_name, device_interface_name);
+        NSLogOut(@"%@", found_device_id);
         found_device = true;
         return;
     }
@@ -1555,7 +1557,9 @@ void handle_device(AMDeviceRef device) {
         } else if (strcmp("uninstall_only", command) == 0) {
             uninstall_app(device);
         } else if (strcmp("list_bundle_id", command) == 0) {
-            list_bundle_id(device);
+            list_bundle_id(device, false);
+        } else if (strcmp("browse_bundle_id", command) == 0) {
+            list_bundle_id(device, true);
         }
         exit(0);
     }
@@ -1757,7 +1761,8 @@ void usage(const char* app) {
         @"  -R, --rm <path>              remove file or directory on device (directories must be empty)\n"
         @"  -V, --version                print the executable version \n"
         @"  -e, --exists                 check if the app with given bundle_id is installed or not \n"
-        @"  -B, --list_bundle_id         list bundle_id \n"
+        @"  -s, --list_bundle_id         list bundle_id \n"
+        @"  -B, --browse_bundle_id       Browse bundle_id \n"
         @"  -W, --no-wifi                ignore wifi devices\n"
         @"  --detect_deadlocks <sec>     start printing backtraces for all threads periodically after specific amount of seconds\n",
         [NSString stringWithUTF8String:app]);
@@ -1802,7 +1807,8 @@ int main(int argc, char *argv[]) {
         { "mkdir", required_argument, NULL, 'D'},
         { "rm", required_argument, NULL, 'R'},
         { "exists", no_argument, NULL, 'e'},
-        { "list_bundle_id", no_argument, NULL, 'B'},
+        { "list_bundle_id", no_argument, NULL, 's'},
+        { "browse_bundle_id", no_argument, NULL, 'B'},
         { "no-wifi", no_argument, NULL, 'W'},
         { "detect_deadlocks", required_argument, NULL, 1000 },
         { NULL, 0, NULL, 0 },
@@ -1901,9 +1907,13 @@ int main(int argc, char *argv[]) {
             command_only = true;
             command = "exists";
             break;
-        case 'B':
+        case 's':
             command_only = true;
             command = "list_bundle_id";
+            break;
+       case 'B':
+            command_only = true;
+            command = "browse_bundle_id";
             break;
         case 'W':
             no_wifi = true;
