@@ -1274,14 +1274,20 @@ void list_bundle_id(AMDeviceRef device, boolean_t browse)
 
     CFIndex count;
     count = CFDictionaryGetCount(result);
-    const void *keys[count];
-    const void *values[count];
-    CFDictionaryGetKeysAndValues(result, keys, values);
-    for(int i = 0; i < count; ++i) {
-        // NSLogOut(@"%@ => %@", (CFStringRef)keys[i], (CFDictionaryRef)(values[i]));
-        NSLogOut(@"%@", (CFDictionaryRef)(values[i]));
+    if (browse) {
+        NSError *writeError = nil;
+        NSDictionary* result_dict = (__bridge NSDictionary*) result;
+        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:result_dict options:NSJSONWritingPrettyPrinted error:&writeError];
+        NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+        NSLogOut(@"%@", jsonString);
+    } else {
+        const void *keys[count];
+        CFDictionaryGetKeysAndValues(result, keys, NULL);
+        for(int i = 0; i < count; ++i) {
+            // NSLogOut(@"%@ => %@", (CFStringRef)keys[i], (CFDictionaryRef)(values[i]));
+            NSLogOut(@"%@", (CFDictionaryRef)(keys[i]));
+        }
     }
-
     check_error(AMDeviceStopSession(device));
     check_error(AMDeviceDisconnect(device));
 }
@@ -1761,7 +1767,7 @@ void usage(const char* app) {
         @"  -R, --rm <path>              remove file or directory on device (directories must be empty)\n"
         @"  -V, --version                print the executable version \n"
         @"  -e, --exists                 check if the app with given bundle_id is installed or not \n"
-        @"  -s, --list_bundle_id         list bundle_id \n"
+        @"  -X, --list_bundle_id         list bundle_id \n"
         @"  -B, --browse_bundle_id       Browse bundle_id \n"
         @"  -W, --no-wifi                ignore wifi devices\n"
         @"  --detect_deadlocks <sec>     start printing backtraces for all threads periodically after specific amount of seconds\n",
@@ -1807,7 +1813,7 @@ int main(int argc, char *argv[]) {
         { "mkdir", required_argument, NULL, 'D'},
         { "rm", required_argument, NULL, 'R'},
         { "exists", no_argument, NULL, 'e'},
-        { "list_bundle_id", no_argument, NULL, 's'},
+        { "list_bundle_id", no_argument, NULL, 'X'},
         { "browse_bundle_id", no_argument, NULL, 'B'},
         { "no-wifi", no_argument, NULL, 'W'},
         { "detect_deadlocks", required_argument, NULL, 1000 },
@@ -1815,7 +1821,7 @@ int main(int argc, char *argv[]) {
     };
     int ch;
 
-    while ((ch = getopt_long(argc, argv, "VmcdvunrILeD:R:i:b:a:t:g:x:p:1:2:o:l::w::9::B::W", longopts, NULL)) != -1)
+    while ((ch = getopt_long(argc, argv, "VmcdvunrILeD:R:i:b:a:t:g:x:p:1:2:o:l::w::9::X::B::W", longopts, NULL)) != -1)
     {
         switch (ch) {
         case 'm':
@@ -1907,7 +1913,7 @@ int main(int argc, char *argv[]) {
             command_only = true;
             command = "exists";
             break;
-        case 's':
+        case 'X':
             command_only = true;
             command = "list_bundle_id";
             break;
